@@ -108,8 +108,6 @@ public class MaxSpeedAggregator extends MetricsAggregator {
         double currentTime = 0;
 
         if (geoValues.advanceExact(doc)) {
-          logger.info("bucket:{}, preTime:{}, pre lat:{}, , pre lon:{}", bucket,
-              lastTime.get(bucket), lastLat.get(bucket), lastLon.get(bucket));
           final int geoCount = geoValues.docValueCount();
           for (int i = 0; i < geoCount; ++i) {
             GeoPoint value = geoValues.nextValue();
@@ -119,26 +117,30 @@ public class MaxSpeedAggregator extends MetricsAggregator {
         }
 
         if (timeValues.advanceExact(doc)) {
-          logger.info("bucket:{}, preTime:{}, pre lat:{}, , pre lon:{}", bucket,
-              lastTime.get(bucket), lastLat.get(bucket), lastLon.get(bucket));
           final int timeCount = timeValues.docValueCount();
-          logger.info("timecount:{}", timeCount);
-
           for (int i = 0; i < timeCount; ++i) {
             currentTime = timeValues.nextValue();
           }
         }
-
+        logger.error(
+            "bucket:{}, preTime:{}, pre lat:{}, , pre lon:{}, currentTime:{}, currentLat:{}, currentLon:{} ",
+            bucket, lastTime.get(bucket), lastLat.get(bucket), lastLon.get(bucket), currentTime,
+            currentLat, currentLon);
         // calculate speed
         if (preValue.get(1) != 0 && preValue.get(2) != 0) {
-          double speed =
-              GeoUtils.arcDistance(preValue.get(1), preValue.get(2), currentLat, currentLon)
-                  / (currentTime - preValue.get(0));
+          double speed = Double.MIN_VALUE;
+          if (currentTime - preValue.get(0) != 0) {
+            speed = GeoUtils.arcDistance(preValue.get(1), preValue.get(2), currentLat, currentLon)
+                / (Math.abs(currentTime - preValue.get(0)) / 1000 * 60 * 60);
+
+          } else
+            speed = Double.MAX_VALUE;
           double max = maxes.get(bucket);
+          double lastMax = max;
           max = Math.max(max, speed);
+          logger.error("bucket:{}, lastMax:{}, currentMax:{}", bucket, lastMax, max);
           maxes.set(bucket, max);
-          logger.info("current time:{}, current lat:{},  current lon:{}, current speed",
-              currentTime, currentLat, currentLon, speed);
+
         }
 
         // set current as previous
