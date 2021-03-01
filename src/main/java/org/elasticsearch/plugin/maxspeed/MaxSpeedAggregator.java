@@ -122,10 +122,7 @@ public class MaxSpeedAggregator extends MetricsAggregator {
             currentTime = timeValues.nextValue();
           }
         }
-        logger.error(
-            "bucket:{}, preTime:{}, pre lat:{}, , pre lon:{}, currentTime:{}, currentLat:{}, currentLon:{} ",
-            bucket, lastTime.get(bucket), lastLat.get(bucket), lastLon.get(bucket), currentTime,
-            currentLat, currentLon);
+
         // calculate speed
         if (preValue.get(1) != 0 && preValue.get(2) != 0) {
           double speed = Double.MIN_VALUE;
@@ -136,9 +133,12 @@ public class MaxSpeedAggregator extends MetricsAggregator {
           } else
             speed = Double.MAX_VALUE;
           double max = maxes.get(bucket);
-          double lastMax = max;
           max = Math.max(max, speed);
-          logger.error("bucket:{}, lastMax:{}, currentMax:{}", bucket, lastMax, max);
+          logger.info(
+              "bucket:{}, preTime:{}, pre lat:{},pre lon:{}, currentTime:{}, currentLat:{}, currentLon:{},lastMax:{}, currentMax:{}",
+              bucket, lastTime.get(bucket), lastLat.get(bucket), lastLon.get(bucket), currentTime,
+              currentLat, currentLon, maxes.get(bucket), max);
+          logger.info("bucket:{}, lastMax:{}, currentMax:{}", bucket, maxes.get(bucket), max);
           maxes.set(bucket, max);
 
         }
