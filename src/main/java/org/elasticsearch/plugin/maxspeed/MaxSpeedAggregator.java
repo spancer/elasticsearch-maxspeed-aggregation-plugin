@@ -11,9 +11,10 @@ import org.apache.lucene.search.CollectionTerminatedException;
 import org.apache.lucene.search.ScoreMode;
 import org.apache.lucene.util.Bits;
 import org.apache.lucene.util.FutureArrays;
+import org.elasticsearch.common.geo.GeoDistance;
 import org.elasticsearch.common.geo.GeoPoint;
-import org.elasticsearch.common.geo.GeoUtils;
 import org.elasticsearch.common.lease.Releasables;
+import org.elasticsearch.common.unit.DistanceUnit;
 import org.elasticsearch.common.util.BigArrays;
 import org.elasticsearch.common.util.DoubleArray;
 import org.elasticsearch.index.fielddata.MultiGeoPointValues;
@@ -127,7 +128,8 @@ public class MaxSpeedAggregator extends MetricsAggregator {
         if (preValue.get(1) != 0 && preValue.get(2) != 0) {
           double speed = Double.MIN_VALUE;
           if (currentTime - preValue.get(0) != 0) {
-            speed = GeoUtils.arcDistance(preValue.get(1), preValue.get(2), currentLat, currentLon)
+            speed = GeoDistance.ARC.calculate(preValue.get(1), preValue.get(2), currentLat,
+                currentLon, DistanceUnit.KILOMETERS)
                 / (Math.abs(currentTime - preValue.get(0)) / 1000 * 60 * 60);
 
           } else
